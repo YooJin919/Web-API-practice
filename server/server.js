@@ -5,6 +5,8 @@ const mysql = require("mysql2");
 //const axios = require('axios');
 var http = require('http');
 const express = require("express");
+const { resolve } = require("path");
+const { rejects } = require("assert");
 // const sequelize = require('./models/index').sequelize;
 const port = 3000
 // sequelize.sync();
@@ -52,12 +54,37 @@ console.log("mysql connection success");
 app.get('/', function(req, res){
     console.log(req.url)
 	return res.send(req.url);
-})
+});
 
-app.get("/search/:nickname", async function(req, res){
-    
+
+
+
+async function get_user_info(req, res){
+    try {
+        let {nickname} = req.params;
+        let sql = `SELECT * FROM user WHERE nickname='${nickname}'`;
+        const re = await db.query(sql, function(err, results){
+            user_puuid = results[0].puuid;
+            user = {
+                nickname : results[0].nickname,
+                levels : results[0].levels
+            }
+            if(err){
+                console.log(err);
+            }
+            else{
+                console.log(results);
+                //console.log('user_puuid : ', user_puuid, ' user : ', user); // topic의 데이터가 객체형태로 반환
+            }
+        }); 
+    }
+    catch(err){
+        console.log(err);
+    }
+	return res.send(req.params);
 }
 
+app.get("/search/:nickname", get_user_info);
 
 
 
@@ -94,5 +121,5 @@ app.get("/search/:nickname", async function(req, res){
 // });
 
 app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`)
+    console.log(`Example app listening at http://localhost:${port}`);
 })
