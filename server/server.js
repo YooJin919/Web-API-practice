@@ -8,9 +8,7 @@ const express = require("express");
 const { resolve } = require("path");
 const { rejects } = require("assert");
 const { nextTick } = require("process");
-// const sequelize = require('./models/index').sequelize;
 const port = 3000
-// sequelize.sync();
 // .env 파일을 읽어오기 위한 패키지
 require('dotenv').config();
 
@@ -50,49 +48,43 @@ const db = mysql.createConnection({ // createConnection method를 사용하고 �
 console.log("mysql connection success");
 
 
-
 // -------------------------------------------------------------------- //
+
 var get_user_info = async function(req, res){
     let {nickname} = req.params;
-    let sql = `SELECT * FROM user WHERE nickname='${nickname}';`;
     try{
-        const [re] = await db
+        const [info] = await db
             .promise()
-            .query(sql)
-        user.nickname = re[0].nickname;
-        console.log('in try : ',re);
+            .query(`SELECT * FROM user WHERE nickname='${nickname}';`);
+            user.nickname = info[0].nickname;
+            user.levels = info[0].levels;
+            user_puuid = info[0].puuid;
+        const [profile] = await db
+            .promise()
+            .query(`SELECT * FROM user_profile WHERE user_profile.puuid='${user_puuid}';`);
+            user.icon_id = profile[0].icon_id;
+        const [rank] = await db
+            .promise()
+            .query(`SELECT * FROM rank_tier WHERE rank_tier.puuid='${user_puuid}';`);
+            rank_tier.tier = rank[0].tier;
+            rank_tier.sub_tier = rank[0].sub_tier;
+            rank_tier.league_point = rank[0].league_point;
+            rank_tier.win = rank[0].win;
+            rank_tier.defeat = rank[0].defeat;
+            rank_tier.top4 = rank[0].top4;
+            rank_tier.date = rank[0].date_in_tier;
+        const [sf] = await db
+            .promise()
+            .query(`SELECT * FROM superfast_tier WHERE superfast_tier.puuid='${user_puuid}';`);
+            superfast_tier.sf_tier = sf[0].sf_tier;
+            superfast_tier.sf_league_point = sf[0].sf_league_point;
+            superfast_tier.sf_date = sf[0].sf_date_in_tier;
+        res.send([user, rank_tier, superfast_tier]);
     } catch(err){
         console.log('ERROR! get_user_info');
         res.status(400).json({ text: "ErrorCode:400, 잘못된 요청입니다." });
     }
-    console.log('user : ',user.nickname);
 }
-
-// async function get_user_info(req, res){
-//     let {nickname} = req.params;
-//     try {
-//         let sql = `SELECT * FROM user WHERE nickname='${nickname}'`;
-//         const [re] = await db.promise().query(sql, function(err, results){
-//             user_puuid = results[0].puuid;
-//             user = {
-//                 nickname : results[0].nickname,
-//                 levels : results[0].levels
-//             }
-//             if(err){
-//                 console.log(err);
-//             }
-//             else{
-//                 console.log(results);
-//                 //console.log('user_puuid : ', user_puuid, ' user : ', user); // topic의 데이터가 객체형태로 반환
-//             }
-//         }); 
-//     }
-//     catch(err){
-//         console.log(err);
-//         res.status(400).json({text: "ErrorCode:400, 잘못된 요청입니다."});
-//     }
-// 	return res.send(nickname);
-// }
 
 app.get('/', function(req, res){
     console.log(req.url)
@@ -100,40 +92,6 @@ app.get('/', function(req, res){
 });
 
 app.get('/search/:nickname', get_user_info);
-
-// -------------------------------------------------------------------- //
-
-
-// app.get("/search/:nickname", async function(req, res){
-//     try {
-//         // 1. 받은 nickname으로 DB에서 puuid 찾기
-//         // query메소드에서 첫번째 인자로 sql쿼리문을 주고, 두번째 인자로 callback을 줌
-//         // callback함수의 첫번째 인자로 error, 두번째 인자로 접속 결과를 줌
-//         // User Info
-//         let {nickname} = req.params;
-//         let sql = `SELECT * FROM user WHERE nickname='${nickname}'`;
-//         const re = await db.query(sql, function(err, results){
-//             user_puuid = results[0].puuid;
-//             console.log(data);
-//             user = {
-//                 nickname : results[0].nickname,
-//                 levels : results[0].levels
-//             }
-//             if(err){
-//                 console.log(err);
-//             }
-//             else{
-//                 console.log(re);
-//                 //console.log('user_puuid : ', user_puuid, ' user : ', user); // topic의 데이터가 객체형태로 반환
-//             }
-//         }); 
-//     }
-//     catch(err){
-//         console.log(err);
-//     }
-
-// 	return res.send(req.params);
-// });
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`);
