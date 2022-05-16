@@ -57,7 +57,7 @@ let matchList = [{
     }],
     augment : [],
 }];
-
+let match_id = [];
 
 // DB 코드
 const db = mysql.createConnection({ // createConnection method를 사용하고 인자로 객체를 줌
@@ -102,10 +102,14 @@ var get_user_info = async function(req, res){
             superfast_tier.sf_tier = sf[0].sf_tier;
             superfast_tier.sf_league_point = sf[0].sf_league_point;
             superfast_tier.sf_date = sf[0].sf_date_in_tier;
-        const [mch] = await db
+        const [matches] = await db
             .promise()
-            .query(`SELECT * FROM matches WHERE matches.puuid='${user_puuid}';`);
-            console.log(mch);
+            .query(`SELECT m.game_type, m.playtime, m.placement, m.left_gold, m.last_round, m.levels, m.playdate, m.legends_name FROM matches as m WHERE puuid='${user_puuid}';`);
+            match_id.append(matches[0].match_id);
+            console.log(matches);
+        const [unit] = await db
+            .promise()
+            .query(`SELECT m.game_type, m.playtime, m.placement, m.left_gold, m.last_round, m.levels, m.playdate, m.legends_name FROM matches as m WHERE puuid='${user_puuid}';`)
         res.send([user, rank_tier, superfast_tier, matchList]);
     } catch(err){
         console.log('ERROR! get_user_info');
