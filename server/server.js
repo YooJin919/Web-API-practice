@@ -36,6 +36,29 @@ let superfast_tier = {
 }
 let user_puuid = '';
 
+let matchList = [{
+    playtime : 0,
+    placement : 0,
+    left_gold : 0,
+    last_round : 0,
+    levels : 0,
+    playdate : Date,
+    legends_name : '',
+    unit : [{
+        units_name : '',
+        units_rank : 0,
+        items_name1 : '',
+        items_name2 : '',
+        items_name3 : '',
+    }],
+    synergy : [{
+        synergy_name : '',
+        synergy_rank : 0,
+    }],
+    augment : [],
+}];
+
+
 // DB 코드
 const db = mysql.createConnection({ // createConnection method를 사용하고 인자로 객체를 줌
     host: process.env.MYSQL_HOST,
@@ -79,7 +102,11 @@ var get_user_info = async function(req, res){
             superfast_tier.sf_tier = sf[0].sf_tier;
             superfast_tier.sf_league_point = sf[0].sf_league_point;
             superfast_tier.sf_date = sf[0].sf_date_in_tier;
-        res.send([user, rank_tier, superfast_tier]);
+        const [mch] = await db
+            .promise()
+            .query(`SELECT * FROM matches WHERE matches.puuid='${user_puuid}';`);
+            console.log(mch);
+        res.send([user, rank_tier, superfast_tier, matchList]);
     } catch(err){
         console.log('ERROR! get_user_info');
         res.status(400).json({ text: "ErrorCode:400, 잘못된 요청입니다." });
